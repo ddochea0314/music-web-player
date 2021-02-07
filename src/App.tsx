@@ -1,15 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
 import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
-import { AppBar, Button, Card, CardContent, CardMedia, colors, IconButton, Paper, Toolbar, Typography } from '@material-ui/core';
+import { AppBar, Fab, Card, CardContent, CardMedia, colors, IconButton, Paper, Toolbar, Typography } from '@material-ui/core';
 
-import Menu from '@material-ui/icons/Menu';
-import PlayArrow from "@material-ui/icons/PlayArrow";
+// https://material-ui.com/components/material-icons/#material-icons
+
+// 이 방식은 빌드 및 테스트 초기 로딩이 느린 단점이 있음.
+// import { PlaylistPlay, PlayArrow, Pause, SkipNext, SkipPrevious } from "@material-ui/icons";
+
+import PlaylistPlay from '@material-ui/icons/PlaylistPlay';
+import PlayArrow from "@material-ui/icons/PlayArrowRounded";
+import Pause from "@material-ui/icons/Pause";
 import SkipNext from "@material-ui/icons/SkipNext";
 import SkipPrevious from "@material-ui/icons/SkipPrevious";
-import Loop from "@material-ui/icons/Loop";
+import Repeat from "@material-ui/icons/Repeat";
 import Shuffle from "@material-ui/icons/Shuffle";
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -25,54 +31,63 @@ const useStyles = makeStyles((theme: Theme) =>
     appBar: {
       top: 'auto',
       bottom: 0,
-    },
-    // toolbar: {
-    //   minHeight: 128,
-    //   alignItems: 'flex-start',
-    //   paddingTop: theme.spacing(1),
-    //   paddingBottom: theme.spacing(2),
-    // },
-    content: {
-      flex: '1 0 auto',
+      paddingTop: theme.spacing(2)
     },
     controls: {
       alignItems: 'center',
-    },
-    playIcon: {
-      height: 48,
-      width: 48,
       flexGrow: 1
     },
+    Icon: {
+      height: 32,
+      width: 32
+    }
   }),
 );
 
 function App() {
   const classes = useStyles();
   const theme = useTheme();
+
+  const [isPlay, setIsPlay] = useState(false);
+
+  function togglePlay() {
+    setIsPlay(!isPlay);
+  }
+
   return (
     <div className="App">
       <AppBar position={'fixed'} className={classes.appBar}>
-      <div className={classes.controls}>
+        <Toolbar>
         <IconButton color='inherit' aria-label="loop">
-          <Loop />
+          <Repeat />
         </IconButton>
+        <div className={classes.controls}>
         <IconButton aria-label="previous">
-          {theme.direction === 'rtl' ? <SkipNext /> : <SkipPrevious />}
+          {theme.direction === 'rtl' ? 
+          <SkipNext className={classes.Icon} /> : 
+          <SkipPrevious className={classes.Icon} />
+          }
         </IconButton>
-        <IconButton aria-label="play/pause">
-          <PlayArrow className={classes.playIcon} />
-        </IconButton>
+        <Fab color={'secondary'} aria-label="play/pause" onClick={togglePlay}>
+          {
+            isPlay? 
+            <Pause className={classes.Icon} /> : 
+            <PlayArrow className={classes.Icon} />
+          }
+        </Fab>
         <IconButton aria-label="next">
-          {theme.direction === 'rtl' ? <SkipPrevious /> : <SkipNext />}
-        </IconButton>
-        <IconButton aria-label="shuffle">
-          <Shuffle />
+          {theme.direction === 'rtl' ? 
+          <SkipPrevious className={classes.Icon} /> : 
+          <SkipNext className={classes.Icon} />}
         </IconButton>
       </div>
-      
+      <IconButton aria-label="shuffle">
+        <Shuffle />
+      </IconButton>
+      </Toolbar>
       <Toolbar>
         <IconButton edge='start' color="inherit" aria-label="menu">
-          <Menu />
+          <PlaylistPlay />
         </IconButton>
       </Toolbar>
       </AppBar>
