@@ -13,6 +13,7 @@
     "@types/react": "^16.14.3",
     "@types/react-dom": "^16.9.10",
     "firebase": "^8.2.6",
+    "localforage": "^1.9.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-scripts": "4.0.2",

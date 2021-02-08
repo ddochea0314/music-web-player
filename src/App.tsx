@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
 import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
-import { AppBar, Fab, Card, CardContent, CardMedia, colors, IconButton, Paper, Toolbar, Typography } from '@material-ui/core';
+import { AppBar, Fab, Card, CardContent, CardMedia, colors, IconButton, Toolbar, Typography, CardHeader } from '@material-ui/core';
 
 // https://material-ui.com/components/material-icons/#material-icons
 
@@ -24,10 +24,6 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'flex',
       bottom: 0,
     },
-    details: {
-      display: 'flex',
-      flexDirection: 'column',
-    },
     appBar: {
       top: 'auto',
       bottom: 0,
@@ -35,7 +31,11 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     controls: {
       alignItems: 'center',
-      flexGrow: 1
+      flexGrow: 1 // 해당 영역과 함께 나란히 놓인 다른 태그들을 양끝으로 밀어낸다(?)
+    },
+    card : {
+      margin: theme.spacing(1),
+      minHeight: 400
     },
     Icon: {
       height: 32,
@@ -49,16 +49,70 @@ function App() {
   const theme = useTheme();
 
   const [isPlay, setIsPlay] = useState(false);
+  const [isRepeat, setIsRepeat] = useState(false);
+  const [isSuffle, setIsSuffle] = useState(false);
 
+
+
+  useEffect(() => {
+    console.log('test'); // 첫 시작 또는 이벤트 발생시마다 호출됨
+  });
+
+  /**
+   * 음악을 재생/일시정지 시킵니다.
+   */
   function togglePlay() {
     setIsPlay(!isPlay);
+    if(!isPlay) {
+      
+    }
+    else {
+
+    }
+  }
+
+  /**
+   * 반복재생을 끄거나 켭니다.
+   */
+  function toggleRepeat() {
+    setIsRepeat(!isRepeat);
+    if (!isRepeat) {
+      
+    }
+    else {
+
+    }
+  }
+
+  /**
+   * 재생리스트를 랜덤하게 정렬하거나, 인덱스 순서에 맞춰 정렬합니다.
+   */
+  function toggleShuffle() {
+    setIsSuffle(!isSuffle);
+    if (!isSuffle) {
+      
+    }
+    else {
+
+    }
   }
 
   return (
     <div className="App">
+      <Toolbar>
+
+      </Toolbar>
+      <Card className={classes.card}>
+        <CardHeader>
+          <Typography>Test</Typography>
+        </CardHeader>
+        <CardContent>
+          <Typography>Test</Typography>
+        </CardContent>
+      </Card>
       <AppBar position={'fixed'} className={classes.appBar}>
         <Toolbar>
-        <IconButton color='inherit' aria-label="loop">
+        <IconButton color={ isRepeat? 'inherit' : 'default' } aria-label="loop" onClick={toggleRepeat}>
           <Repeat />
         </IconButton>
         <div className={classes.controls}>
@@ -81,7 +135,7 @@ function App() {
           <SkipNext className={classes.Icon} />}
         </IconButton>
       </div>
-      <IconButton aria-label="shuffle">
+      <IconButton color={isSuffle? 'inherit' : 'default'} aria-label="shuffle" onClick={toggleShuffle}>
         <Shuffle />
       </IconButton>
       </Toolbar>
