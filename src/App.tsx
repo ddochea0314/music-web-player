@@ -1,10 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import firebase from "firebase/app";
+import "firebase/storage";
+import "firebase/auth";
+
+import { useAuthState } from "react-firebase-hooks/auth";
+
+import localforage from "localforage";
 import logo from './logo.svg';
 import './App.css';
 
 import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
-import { AppBar, Fab, Card, CardContent, CardMedia, colors, IconButton, Toolbar, Typography, CardHeader } from '@material-ui/core';
+import { AppBar, Fab, Card, CardContent, CardMedia, colors, IconButton, Toolbar, Typography, CardHeader, Button } from '@material-ui/core';
 
 // https://material-ui.com/components/material-icons/#material-icons
 
@@ -22,6 +28,14 @@ import Shuffle from "@material-ui/icons/Shuffle";
 import { firebaseConfig } from "./firebaseConfig";
 
 firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const storage = firebase.storage();
+
+localforage.config({
+  storeName: "media"
+});
+
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -50,6 +64,40 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 function App() {
+  const [user] = useAuthState(auth); // firebase auth 기능 사용을 위한 Hook
+
+  return (
+    <div className="App">
+      { user ? <MusicPlayer /> : <SignIn /> }
+    </div>
+    );
+}
+
+export default App;
+
+/**
+ * 로그인 버튼(화면)
+ */
+function SignIn() {
+  const signInWithGoogle = () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+  }
+  return (<Button color={'primary'} onClick={signInWithGoogle}>Sign in with Google</Button>)
+}
+/**
+ * 로그아웃 버튼
+ */
+function SignOut() {
+  return auth.currentUser && (
+    <Button color={'inherit'} onClick={() => auth.signOut()}>Sign out</Button>
+  )
+}
+
+/**
+ * 음악 재생 화면 
+ */
+function MusicPlayer() {
   const classes = useStyles();
   const theme = useTheme();
 
@@ -57,10 +105,33 @@ function App() {
   const [isRepeat, setIsRepeat] = useState(false);
   const [isSuffle, setIsSuffle] = useState(false);
 
+  const [currentPlayIdx, setCurrentPlayIdx] = useState(0);
 
+  useEffect(() => {  // 첫 시작 또는 이벤트 발생시마다 호출됨
+    console.log(`isPlay : ${isPlay}`);
+    console.log(`isRepeat : ${isRepeat}`);
+    console.log(`isSuffle : ${isSuffle}`);
+    if(isPlay) {
+      const storage = firebase.storage().ref();
+      storage.listAll().then(result => {
+        console.log(result.items);
+      });
+    }
+    else {
+      
+    }
+    if (isRepeat) {
+      
+    }
+    else {
 
-  useEffect(() => {
-    console.log('test'); // 첫 시작 또는 이벤트 발생시마다 호출됨
+    }
+    if (isSuffle) {
+      
+    }
+    else {
+
+    }
   });
 
   /**
@@ -68,12 +139,6 @@ function App() {
    */
   function togglePlay() {
     setIsPlay(!isPlay);
-    if(!isPlay) {
-      
-    }
-    else {
-
-    }
   }
 
   /**
@@ -81,12 +146,6 @@ function App() {
    */
   function toggleRepeat() {
     setIsRepeat(!isRepeat);
-    if (!isRepeat) {
-      
-    }
-    else {
-
-    }
   }
 
   /**
@@ -94,20 +153,11 @@ function App() {
    */
   function toggleShuffle() {
     setIsSuffle(!isSuffle);
-    if (!isSuffle) {
-      
-    }
-    else {
-
-    }
   }
 
   return (
-    <div className="App">
-      <Toolbar>
-
-      </Toolbar>
-      <Card className={classes.card}>
+    <>
+    <Card className={classes.card}>
         <CardHeader>
           <Typography>Test</Typography>
         </CardHeader>
@@ -148,10 +198,9 @@ function App() {
         <IconButton edge='start' color="inherit" aria-label="menu">
           <PlaylistPlay />
         </IconButton>
+        <SignOut />
       </Toolbar>
       </AppBar>
-    </div>
+    </>
   );
 }
-
-export default App;
