@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import firebase from "firebase/app";
 import logo from './logo.svg';
 import './App.css';
 
@@ -17,6 +18,10 @@ import SkipNext from "@material-ui/icons/SkipNext";
 import SkipPrevious from "@material-ui/icons/SkipPrevious";
 import Repeat from "@material-ui/icons/Repeat";
 import Shuffle from "@material-ui/icons/Shuffle";
+
+import { firebaseConfig } from "./firebaseConfig";
+
+firebase.initializeApp(firebaseConfig);
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
