@@ -30,12 +30,11 @@ import { firebaseConfig } from "./firebaseConfig";
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
-const storage = firebase.storage();
+const storage = firebase.storage().ref();
 
 localforage.config({
   storeName: "media"
 });
-
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -106,16 +105,22 @@ function MusicPlayer() {
   const [isSuffle, setIsSuffle] = useState(false);
 
   const [currentPlayIdx, setCurrentPlayIdx] = useState(0);
+  const [playlist, setPlaylist] = useState(new Array<string>());
 
-  useEffect(() => {  // 첫 시작 또는 이벤트 발생시마다 호출됨
-    console.log(`isPlay : ${isPlay}`);
-    console.log(`isRepeat : ${isRepeat}`);
-    console.log(`isSuffle : ${isSuffle}`);
+  // function init() {
+  //   console.log(`init ${MusicPlayer.name}`);
+  //   storage.listAll().then(result => {
+  //     result.items.forEach(item => {
+  //       console.log(item.name);
+  //       playlist.push(item.name);
+  //     });
+  //   });
+  // }
+  // init(); // 여기서 호출하면 매 State 값 변경시마다 호출됨.
+  
+  useEffect(() => {
     if(isPlay) {
-      const storage = firebase.storage().ref();
-      storage.listAll().then(result => {
-        console.log(result.items);
-      });
+      
     }
     else {
       
@@ -132,7 +137,7 @@ function MusicPlayer() {
     else {
 
     }
-  });
+  }, [isPlay, isRepeat, isSuffle]); // 여기에 값을 입력해야 함. [] 없이 사용하면 매 이벤트마다 호출됨
 
   /**
    * 음악을 재생/일시정지 시킵니다.
