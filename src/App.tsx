@@ -124,7 +124,8 @@ function MusicPlayer() {
   const [currentTime, setCurrentTime] = useState(0);
 
   // const audio = new Audio(); // 이렇게 선언할 경우 MusicPlayer 내 다른 state값이 변경될때마다 매번 생성됨.
-  const [audio] = useState(new Audio());
+  // const [audio] = useState(new Audio()); // 재생중 로그아웃시 객체가 살아남아있다. 어차피 DevTools 네트워크탭에서 blob URL 확인이 가능하므로 그냥 useRef 쓰도록 하자.
+  const audioRef = useRef(new Audio);
 
   function init() {
     console.log(`init ${MusicPlayer.name}`);
@@ -141,7 +142,7 @@ function MusicPlayer() {
       setPlayIndexes(playIdx);
       setCurrentPlayIdx(0);
     });
-
+    const audio = audioRef.current;
     audio.addEventListener('timeupdate', function() {
       //#region NOTE : // EventListener 안에선 State 값을 사용할 수 없다. 해당 상태값이 이벤트안에선 정상적으로 인지되지 않는다.
       // if(currentTime >= totalTime) {
@@ -150,7 +151,7 @@ function MusicPlayer() {
       // }
       //#endregion
       setCurrentTime(audio.currentTime);
-      setTotalTime( audio.duration);
+      setTotalTime(audio.duration);
     });
     audio.addEventListener('play', function() {
       // H/W에서 제어했을때도 State의 변경값 확인이 필요하므로 eventlistener 필요
@@ -167,6 +168,7 @@ function MusicPlayer() {
 
   useEffect(() => {
     if(currentPlayIdx !== -1){
+      const audio = audioRef.current;
       URL.revokeObjectURL(audio.src);
       const key = playList[playIndexes[currentPlayIdx]];
       localforage.getItem(key)
@@ -216,6 +218,7 @@ function MusicPlayer() {
     if(nextIdx >= playIndexes.length){
       nextIdx = 0;
       if(!isRepeat){
+        const audio = audioRef.current;
         audio.pause();
         setIsPlay(false);
       }
@@ -225,6 +228,7 @@ function MusicPlayer() {
   
   return (
     <>
+    <audio ref={audioRef} hidden={true} />
     <Card className={classes.card}>
         <CardHeader>
           <Typography>Test</Typography>
@@ -240,13 +244,13 @@ function MusicPlayer() {
           <Repeat />
         </IconButton>
         <div className={classes.controls}>
-        <IconButton aria-label="previous" onClick={() => audio.currentTime += 30}>
+        <IconButton aria-label="previous" onClick={() => audioRef.current.currentTime += 30}>
           {theme.direction === 'rtl' ? 
           <SkipNext className={classes.Icon} /> : 
           <SkipPrevious className={classes.Icon} />
           }
         </IconButton>
-        <Fab color={'secondary'} aria-label="play/pause" onClick={() => isPlay? audio.pause() : audio.play() }>
+        <Fab color={'secondary'} aria-label="play/pause" onClick={() => isPlay? audioRef.current.pause() : audioRef.current.play() }>
           {
             isPlay? 
             <Pause className={classes.Icon} /> : 
