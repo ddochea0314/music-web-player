@@ -1,4 +1,5 @@
 export interface Media {
     name : string,
-    file? : Blob
+    file? : Blob,
+    url? : string
 }

@@ -28,7 +28,6 @@ import Shuffle from "@material-ui/icons/Shuffle";
 
 import { firebaseConfig } from "./firebaseConfig";
 import { Media } from "./models/media";
-import { cacheNames } from 'workbox-core';
 
 firebase.initializeApp(firebaseConfig);
 
@@ -118,9 +117,9 @@ function MusicPlayer() {
   const [isRepeat, setIsRepeat] = useState(false);
   const [isSuffle, setIsSuffle] = useState(false);
 
-  const [currentPlayIdx, setCurrentPlayIdx] = useState(0);
+  const [currentPlayIdx, setCurrentPlayIdx] = useState(-1);
   const [playIndexes, setPlayIndexes] = useState(new Array<number>());
-  const [playList, setPlayList] = useState(new Array<Media>());
+  const [playList, setPlayList] = useState(new Array<string>());
   const [totalTime, setTotalTime] = useState(1); // 초기값을 0으로 주면 바로 다음 음악재생
   const [currentTime, setCurrentTime] = useState(0);
 
@@ -130,29 +129,28 @@ function MusicPlayer() {
   function init() {
     console.log(`init ${MusicPlayer.name}`);
     storage.listAll().then(result => {
-      const mediaArray : Array<Media> = new Array<Media>();
+      const mediaArray : string[] = [];
+      const playIdx : number[] = [];
       let i = 0;
       result.items.forEach(item => {
-        mediaArray.push({
-          name : item.name,
-        });
-        playIndexes.push(i);
+        mediaArray.push(item.name);
+        playIdx.push(i);
         i++;
-        setPlayList(mediaArray);
       });
+      setPlayList(mediaArray);
+      setPlayIndexes(playIdx);
+      setCurrentPlayIdx(0);
     });
 
     audio.addEventListener('timeupdate', function() {
-      const currentTime = audio.currentTime;
-      const totalTime = audio.duration;
       //#region NOTE : // EventListener 안에선 State 값을 사용할 수 없다. 해당 상태값이 이벤트안에선 정상적으로 인지되지 않는다.
       // if(currentTime >= totalTime) {
       //   console.log('do next');
       //   setNext();
       // }
       //#endregion
-      setCurrentTime(currentTime);
-      setTotalTime(totalTime);
+      setCurrentTime(audio.currentTime);
+      setTotalTime( audio.duration);
     });
     audio.addEventListener('play', function() {
       // H/W에서 제어했을때도 State의 변경값 확인이 필요하므로 eventlistener 필요
@@ -168,22 +166,44 @@ function MusicPlayer() {
   }, []); // [] 내용물이 없으면 최초 1회만 호출
 
   useEffect(() => {
-    URL.revokeObjectURL(audio.src);
-    localforage.key(currentPlayIdx).then(item => {
-      return localforage.getItem(item);
-    })
-    .then(item => {
-      audio.src = URL.createObjectURL(item);
-      if(isPlay) audio.play();
-    })
-    .then(_ => {
-      
-    });
+    if(currentPlayIdx !== -1){
+      URL.revokeObjectURL(audio.src);
+      const key = playList[playIndexes[currentPlayIdx]];
+      localforage.getItem(key)
+      .then(item => {
+        if(item) {
+          play(item); 
+        }
+        else {
+          return storage.child(key).getDownloadURL()
+          .then(url => {
+            if(url) {
+              return fetch(url);
+            }
+          })
+          .then(res => {
+            if(res) {
+              return res.blob();
+            }
+          })
+          .then(blob => {
+            if(blob) {
+              console.log(`call blob`);
+              console.log(blob);
+              localforage.setItem(key, blob);
+              play(blob);
+            }
+          });
+        }
+      });
+      const play = (item : any) => {
+         if(item){
+          audio.src = URL.createObjectURL(item);
+          if(isPlay) audio.play();
+        }
+      }
+    }
   }, [currentPlayIdx])
-
-  useEffect(() => {
-    console.log('always call');
-  })
 
   useEffect(() => {
     if(currentTime >= totalTime) {
@@ -193,10 +213,11 @@ function MusicPlayer() {
 
   function setNext() {
     let nextIdx = currentPlayIdx + 1;
-    if(nextIdx > playIndexes.length){
+    if(nextIdx >= playIndexes.length){
       nextIdx = 0;
       if(!isRepeat){
         audio.pause();
+        setIsPlay(false);
       }
     }
     setCurrentPlayIdx(nextIdx);
