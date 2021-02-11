@@ -6,11 +6,12 @@ import "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 import localforage from "localforage";
-import logo from './logo.svg';
+
+// import logo from './logo.svg';
 import './App.css';
 
 import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
-import { AppBar, Fab, Card, CardContent, CardMedia, colors, IconButton, Toolbar, Typography, CardHeader, Button } from '@material-ui/core';
+import { AppBar, Fab, Card, CardContent, IconButton, Toolbar, Typography, CardHeader, Button } from '@material-ui/core';
 
 // https://material-ui.com/components/material-icons/#material-icons
 
@@ -26,6 +27,8 @@ import Repeat from "@material-ui/icons/Repeat";
 import Shuffle from "@material-ui/icons/Shuffle";
 
 import { firebaseConfig } from "./firebaseConfig";
+import { Media } from "./models/media";
+import { cacheNames } from 'workbox-core';
 
 firebase.initializeApp(firebaseConfig);
 
@@ -93,6 +96,17 @@ function SignOut() {
   )
 }
 
+interface MusicListProp {
+  playList : Media[]
+}
+
+/**
+ * 음악 리스트 화면
+ */
+function MusicList({ playList } : MusicListProp) {
+
+}
+
 /**
  * 음악 재생 화면 
  */
@@ -105,61 +119,89 @@ function MusicPlayer() {
   const [isSuffle, setIsSuffle] = useState(false);
 
   const [currentPlayIdx, setCurrentPlayIdx] = useState(0);
-  const [playlist, setPlaylist] = useState(new Array<string>());
+  const [playIndexes, setPlayIndexes] = useState(new Array<number>());
+  const [playList, setPlayList] = useState(new Array<Media>());
+  const [totalTime, setTotalTime] = useState(1); // 초기값을 0으로 주면 바로 다음 음악재생
+  const [currentTime, setCurrentTime] = useState(0);
 
-  // function init() {
-  //   console.log(`init ${MusicPlayer.name}`);
-  //   storage.listAll().then(result => {
-  //     result.items.forEach(item => {
-  //       console.log(item.name);
-  //       playlist.push(item.name);
-  //     });
-  //   });
-  // }
-  // init(); // 여기서 호출하면 매 State 값 변경시마다 호출됨.
-  
+  // const audio = new Audio(); // 이렇게 선언할 경우 MusicPlayer 내 다른 state값이 변경될때마다 매번 생성됨.
+  const [audio] = useState(new Audio());
+
+  function init() {
+    console.log(`init ${MusicPlayer.name}`);
+    storage.listAll().then(result => {
+      const mediaArray : Array<Media> = new Array<Media>();
+      let i = 0;
+      result.items.forEach(item => {
+        mediaArray.push({
+          name : item.name,
+        });
+        playIndexes.push(i);
+        i++;
+        setPlayList(mediaArray);
+      });
+    });
+
+    audio.addEventListener('timeupdate', function() {
+      const currentTime = audio.currentTime;
+      const totalTime = audio.duration;
+      //#region NOTE : // EventListener 안에선 State 값을 사용할 수 없다. 해당 상태값이 이벤트안에선 정상적으로 인지되지 않는다.
+      if(currentTime >= totalTime) {
+        console.log('do next');
+        setNext();
+      }
+      //#endregion
+      setCurrentTime(currentTime);
+      setTotalTime(totalTime);
+    });
+    audio.addEventListener('play', function() {
+      // H/W에서 제어했을때도 State의 변경값 확인이 필요하므로 eventlistener 필요
+      setIsPlay(true); // 이벤트리스너 안에선 고정값만 사용가능.
+    });
+    audio.addEventListener('pause', function() {
+      setIsPlay(false);
+    });
+  }
+
   useEffect(() => {
-    if(isPlay) {
-      
-    }
-    else {
-      
-    }
-    if (isRepeat) {
-      
-    }
-    else {
+    init();
+  }, []); // [] 내용물이 없으면 최초 1회만 호출
 
-    }
-    if (isSuffle) {
+  useEffect(() => {
+    URL.revokeObjectURL(audio.src);
+    localforage.key(currentPlayIdx).then(item => {
+      return localforage.getItem(item);
+    })
+    .then(item => {
+      audio.src = URL.createObjectURL(item);
+      if(isPlay) audio.play();
+    })
+    .then(_ => {
       
-    }
-    else {
+    });
+  }, [currentPlayIdx])
 
-    }
-  }, [isPlay, isRepeat, isSuffle]); // 여기에 값을 입력해야 함. [] 없이 사용하면 매 이벤트마다 호출됨
+  useEffect(() => {
+    console.log('always call');
+  })
 
-  /**
-   * 음악을 재생/일시정지 시킵니다.
-   */
-  function togglePlay() {
-    setIsPlay(!isPlay);
+  useEffect(() => {
+    if(currentTime >= totalTime) {
+      setNext();
+    }
+  }, [currentTime, totalTime]);
+
+  function setNext() {
+    let nextIdx = currentPlayIdx + 1;
+    if(nextIdx > playIndexes.length){
+      nextIdx = 0;
+      if(!isRepeat){
+        audio.pause();
+      }
+    }
+    setCurrentPlayIdx(nextIdx);
   }
-
-  /**
-   * 반복재생을 끄거나 켭니다.
-   */
-  function toggleRepeat() {
-    setIsRepeat(!isRepeat);
-  }
-
-  /**
-   * 재생리스트를 랜덤하게 정렬하거나, 인덱스 순서에 맞춰 정렬합니다.
-   */
-  function toggleShuffle() {
-    setIsSuffle(!isSuffle);
-  }
-
+  
   return (
     <>
     <Card className={classes.card}>
@@ -167,35 +209,36 @@ function MusicPlayer() {
           <Typography>Test</Typography>
         </CardHeader>
         <CardContent>
-          <Typography>Test</Typography>
+          <Typography>{currentPlayIdx}</Typography>
+          <Typography>{currentTime} / {totalTime}</Typography>
         </CardContent>
       </Card>
       <AppBar position={'fixed'} className={classes.appBar}>
         <Toolbar>
-        <IconButton color={ isRepeat? 'inherit' : 'default' } aria-label="loop" onClick={toggleRepeat}>
+        <IconButton color={ isRepeat? 'inherit' : 'default' } aria-label="loop" onClick={() => setIsRepeat(!isRepeat)}>
           <Repeat />
         </IconButton>
         <div className={classes.controls}>
-        <IconButton aria-label="previous">
+        <IconButton aria-label="previous" onClick={() => audio.currentTime += 30}>
           {theme.direction === 'rtl' ? 
           <SkipNext className={classes.Icon} /> : 
           <SkipPrevious className={classes.Icon} />
           }
         </IconButton>
-        <Fab color={'secondary'} aria-label="play/pause" onClick={togglePlay}>
+        <Fab color={'secondary'} aria-label="play/pause" onClick={() => isPlay? audio.pause() : audio.play() }>
           {
             isPlay? 
             <Pause className={classes.Icon} /> : 
             <PlayArrow className={classes.Icon} />
           }
         </Fab>
-        <IconButton aria-label="next">
+        <IconButton aria-label="next" onClick={setNext}>
           {theme.direction === 'rtl' ? 
           <SkipPrevious className={classes.Icon} /> : 
           <SkipNext className={classes.Icon} />}
         </IconButton>
       </div>
-      <IconButton color={isSuffle? 'inherit' : 'default'} aria-label="shuffle" onClick={toggleShuffle}>
+      <IconButton color={isSuffle? 'inherit' : 'default'} aria-label="shuffle" onClick={() => setIsSuffle(!isSuffle)}>
         <Shuffle />
       </IconButton>
       </Toolbar>
