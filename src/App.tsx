@@ -146,10 +146,10 @@ function MusicPlayer() {
       const currentTime = audio.currentTime;
       const totalTime = audio.duration;
       //#region NOTE : // EventListener 안에선 State 값을 사용할 수 없다. 해당 상태값이 이벤트안에선 정상적으로 인지되지 않는다.
-      if(currentTime >= totalTime) {
-        console.log('do next');
-        setNext();
-      }
+      // if(currentTime >= totalTime) {
+      //   console.log('do next');
+      //   setNext();
+      // }
       //#endregion
       setCurrentTime(currentTime);
       setTotalTime(totalTime);
