@@ -6,6 +6,7 @@ import "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 import localforage from "localforage";
+import deepCopy from "fast-copy";
 
 // import logo from './logo.svg';
 import './App.css';
@@ -209,11 +210,21 @@ function MusicPlayer() {
 
   useEffect(() => {
     if(currentTime >= totalTime) {
-      setNext();
+      setNextPlay();
     }
   }, [currentTime, totalTime]);
 
-  function setNext() {
+  useEffect(() => {
+    if(isSuffle) {
+      setPlayIndexes(playIndexes.sort(() => Math.random() - Math.random()));
+      // 현재 듣는 음악을 인덱스 가장 앞쪽에 두려했지만, 굳이 안둬도 재생상에는 문제없으므로 쓰도록 한다. (똑같은 음악이 바로 다음순서가 될수도 있긴하다.)
+    }
+    else {
+      setPlayIndexes(playIndexes.sort());
+    }
+  }, [isSuffle]);
+
+  function setNextPlay() {
     let nextIdx = currentPlayIdx + 1;
     if(nextIdx >= playIndexes.length){
       nextIdx = 0;
@@ -257,7 +268,7 @@ function MusicPlayer() {
             <PlayArrow className={classes.Icon} />
           }
         </Fab>
-        <IconButton aria-label="next" onClick={setNext}>
+        <IconButton aria-label="next" onClick={setNextPlay}>
           {theme.direction === 'rtl' ? 
           <SkipPrevious className={classes.Icon} /> : 
           <SkipNext className={classes.Icon} />}
