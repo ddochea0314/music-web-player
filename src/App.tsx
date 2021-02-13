@@ -114,7 +114,7 @@ function MusicList({ closeThis, playList, currentPlayIdx, setCurrentPlayIdx } : 
     
     return (
       <div>
-      {(item.idx === currentPlayIdx)? "(playing)" : "" }
+      {(item.idx === playList[currentPlayIdx].idx)? "(playing)" : "" }
       <span>{ item.idx } </span>
       <span>{ item.title } </span>
       <button onClick={() => setCurrentPlayIdx(item.idx)} >jump Music</button>
