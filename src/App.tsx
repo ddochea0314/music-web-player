@@ -9,20 +9,23 @@ import localforage from "localforage";
 import './App.css';
 
 import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
-import { AppBar, Fab, Card, CardContent, IconButton, Toolbar, Typography, CardHeader, Button } from '@material-ui/core';
-
-// https://material-ui.com/components/material-icons/#material-icons
+import { AppBar, Fab, Card, CardContent, IconButton, Toolbar, Typography, CardHeader, Button, List, ListItem, ListItemText, ListItemIcon } from '@material-ui/core';
 
 // 이 방식은 빌드 및 테스트 초기 로딩이 느린 단점이 있음.
 // import { PlaylistPlay, PlayArrow, Pause, SkipNext, SkipPrevious } from "@material-ui/icons";
 
-import PlaylistPlay from '@material-ui/icons/PlaylistPlay';
-import PlayArrow from "@material-ui/icons/PlayArrowRounded";
-import Pause from "@material-ui/icons/Pause";
-import SkipNext from "@material-ui/icons/SkipNext";
-import SkipPrevious from "@material-ui/icons/SkipPrevious";
-import Repeat from "@material-ui/icons/Repeat";
-import Shuffle from "@material-ui/icons/Shuffle";
+// 아이콘 검색 URL : https://material-ui.com/components/material-icons/#material-icons
+import IconPlaylistPlay from '@material-ui/icons/PlaylistPlay';
+import IconPlayArrow from "@material-ui/icons/PlayArrowRounded";
+import IconPause from "@material-ui/icons/Pause";
+import IconSkipNext from "@material-ui/icons/SkipNext";
+import IconSkipPrevious from "@material-ui/icons/SkipPrevious";
+import IconRepeat from "@material-ui/icons/Repeat";
+import IconShuffle from "@material-ui/icons/Shuffle";
+import IconAudiotrack from "@material-ui/icons/Audiotrack";
+import IconVolumeMute from "@material-ui/icons/VolumeMute";
+import IconClose from "@material-ui/icons/Close";
+import IconExitToApp from '@material-ui/icons/ExitToApp';
 
 import { firebaseConfig } from "./firebaseConfig";
 import { Media } from './models/media';
@@ -88,13 +91,22 @@ function SignIn() {
  * 로그아웃 버튼
  */
 function SignOut() {
+
+  function signOut() {
+    if(window.confirm('로그아웃 하시겠습니까?')) {
+      auth.signOut();
+    }
+  }
+
   return auth.currentUser && (
-    <Button color={'inherit'} onClick={() => auth.signOut()}>Sign out</Button>
+    <IconButton color={'inherit'} onClick={signOut}>
+      <IconExitToApp />
+    </IconButton>
   )
 }
 
 interface MusicListProp {
-  closeThis : Function,
+  close : Function,
   playList : Media[],
   currentPlayIdx : number,
   setCurrentPlayIdx : Function
@@ -103,26 +115,26 @@ interface MusicListProp {
 /**
  * 음악 리스트 화면
  */
-function MusicList({ closeThis, playList, currentPlayIdx, setCurrentPlayIdx } : MusicListProp) {
+function MusicList({ close, playList, currentPlayIdx, setCurrentPlayIdx } : MusicListProp) {
 
-  function onCloseClick() {
-    closeThis();
-  }
-
-  return (<>
+  return (
+  <List>
   {playList && playList.map(item => {
     
     return (
-      <div>
-      {(item.idx === playList[currentPlayIdx].idx)? "(playing)" : "" }
-      <span>{ item.idx } </span>
-      <span>{ item.title } </span>
-      <button onClick={() => setCurrentPlayIdx(item.idx)} >jump Music</button>
-      </div>
+      <ListItem key={item.title} button onClick={() => { setCurrentPlayIdx(playList.findIndex(p => p.idx === item.idx)) }}>
+        <ListItemIcon>
+          {(item.idx === playList[currentPlayIdx].idx)? <IconAudiotrack /> : <IconVolumeMute /> }
+        </ListItemIcon>
+        <ListItemText>{ item.title }</ListItemText>
+      </ListItem>
     )
   }) }
-  <button onClick={onCloseClick}>Close List</button>
-  </>)
+  <IconButton onClick={() => close() }>
+    <IconClose />
+  </IconButton>
+  </List>
+  )
 }
 
 /**
@@ -138,7 +150,6 @@ function MusicPlayer() {
 
   const [currentPlayIdx, setCurrentPlayIdx] = useState(-1);
   const [currentPlayTitle, setCurrentPlayTitle] = useState("");
-  // const [playIndexes, setPlayIndexes] = useState(new Array<number>());
   const [playList, setPlayList] = useState(new Array<Media>());
   const [totalTime, setTotalTime] = useState(1); // 초기값을 0으로 주면 바로 다음 음악재생
   const [currentTime, setCurrentTime] = useState(0);
@@ -234,7 +245,7 @@ function MusicPlayer() {
       setPlayList(result);
     }
     else {
-      setPlayList(p => p.sort());
+      setPlayList(list => list.sort((a, b) => a.idx - b.idx));
     }
   }, [isSuffle]);
 
@@ -250,16 +261,12 @@ function MusicPlayer() {
     }
     setCurrentPlayIdx(nextIdx);
   }
-
-  function closePlayList() {
-    setIsShowPlayList(false);
-  }
   
   return (
     <>
     <audio ref={audioRef} hidden={true} />
     {isShowPlayList? 
-    <MusicList closeThis={closePlayList} playList={playList} currentPlayIdx={currentPlayIdx} setCurrentPlayIdx={setCurrentPlayIdx} /> : 
+    <MusicList close={setIsShowPlayList} playList={playList} currentPlayIdx={currentPlayIdx} setCurrentPlayIdx={setCurrentPlayIdx} /> : 
       <>
       <Card className={classes.card}>
         <CardHeader>
@@ -275,36 +282,37 @@ function MusicPlayer() {
       <AppBar position={'fixed'} className={classes.appBar}>
         <Toolbar>
         <IconButton color={ isRepeat? 'inherit' : 'default' } aria-label="loop" onClick={() => setIsRepeat(!isRepeat)}>
-          <Repeat />
+          <IconRepeat />
         </IconButton>
         <div className={classes.controls}>
         <IconButton aria-label="previous" onClick={() => audioRef.current.currentTime += 30}>
           {theme.direction === 'rtl' ? 
-          <SkipNext className={classes.Icon} /> : 
-          <SkipPrevious className={classes.Icon} />
+          <IconSkipNext className={classes.Icon} /> : 
+          <IconSkipPrevious className={classes.Icon} />
           }
         </IconButton>
         <Fab color={'secondary'} aria-label="play/pause" onClick={() => isPlay? audioRef.current.pause() : audioRef.current.play() }>
           {
             isPlay? 
-            <Pause className={classes.Icon} /> : 
-            <PlayArrow className={classes.Icon} />
+            <IconPause className={classes.Icon} /> : 
+            <IconPlayArrow className={classes.Icon} />
           }
         </Fab>
         <IconButton aria-label="next" onClick={setNextPlay}>
           {theme.direction === 'rtl' ? 
-          <SkipPrevious className={classes.Icon} /> : 
-          <SkipNext className={classes.Icon} />}
+          <IconSkipPrevious className={classes.Icon} /> : 
+          <IconSkipNext className={classes.Icon} />}
         </IconButton>
       </div>
       <IconButton color={isSuffle? 'inherit' : 'default'} aria-label="shuffle" onClick={() => setIsSuffle(!isSuffle)}>
-        <Shuffle />
+        <IconShuffle />
       </IconButton>
       </Toolbar>
       <Toolbar>
         <IconButton edge='start' color="inherit" aria-label="menu" onClick={() => setIsShowPlayList(true)}>
-          <PlaylistPlay />
+          <IconPlaylistPlay />
         </IconButton>
+        <div className={classes.controls}></div>
         <SignOut />
       </Toolbar>
       </AppBar>
