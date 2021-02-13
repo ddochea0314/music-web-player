@@ -9,7 +9,7 @@ import localforage from "localforage";
 import './App.css';
 
 import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
-import { AppBar, Fab, Card, CardContent, IconButton, Toolbar, Typography, CardHeader, Button, List, ListItem, ListItemText, ListItemIcon } from '@material-ui/core';
+import { AppBar, LinearProgress, Fab, Card, CardContent, IconButton, Toolbar, Typography, CardHeader, Button, List, ListItem, ListItemText, ListItemIcon, Grid, Paper } from '@material-ui/core';
 
 // 이 방식은 빌드 및 테스트 초기 로딩이 느린 단점이 있음.
 // import { PlaylistPlay, PlayArrow, Pause, SkipNext, SkipPrevious } from "@material-ui/icons";
@@ -47,8 +47,10 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     appBar: {
       top: 'auto',
+      position: 'fixed',
       bottom: 0,
-      paddingTop: theme.spacing(2)
+      paddingTop: theme.spacing(2),
+      width: '100%'
     },
     controls: {
       alignItems: 'center',
@@ -61,7 +63,15 @@ const useStyles = makeStyles((theme: Theme) =>
     Icon: {
       height: 32,
       width: 32
-    }
+    },
+    progress: {
+      margin: '1em 1em 2em '
+    },    
+    paper: {
+      padding: theme.spacing(2),
+      textAlign: 'center',
+      color: theme.palette.text.secondary,
+    },
   }),
 );
 
@@ -267,25 +277,15 @@ function MusicPlayer() {
     <audio ref={audioRef} hidden={true} />
     {isShowPlayList? 
     <MusicList close={setIsShowPlayList} playList={playList} currentPlayIdx={currentPlayIdx} setCurrentPlayIdx={setCurrentPlayIdx} /> : 
-      <>
-      <Card className={classes.card}>
-        <CardHeader>
-          <Typography>Test</Typography>
-        </CardHeader>
-        <CardContent>
-          <Typography>{currentPlayTitle}</Typography>
-          <Typography>{currentPlayIdx}</Typography>
-          <Typography>{currentTime} / {totalTime}</Typography>
-          
-        </CardContent>
-      </Card>
-      <AppBar position={'fixed'} className={classes.appBar}>
+    <div className={classes.appBar}>
+      <LinearProgress className={classes.progress} variant="determinate" value={currentTime / totalTime * 100 } />
+      <AppBar position={'relative'}>
         <Toolbar>
         <IconButton color={ isRepeat? 'inherit' : 'default' } aria-label="loop" onClick={() => setIsRepeat(!isRepeat)}>
           <IconRepeat />
         </IconButton>
         <div className={classes.controls}>
-        <IconButton aria-label="previous" onClick={() => audioRef.current.currentTime += 30}>
+        <IconButton aria-label="previous" onClick={() => audioRef.current.currentTime = 0}>
           {theme.direction === 'rtl' ? 
           <IconSkipNext className={classes.Icon} /> : 
           <IconSkipPrevious className={classes.Icon} />
@@ -316,7 +316,8 @@ function MusicPlayer() {
         <SignOut />
       </Toolbar>
       </AppBar>
-      </>}
+    </div>
+    }
     </>
   );
 }
