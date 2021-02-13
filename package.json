@@ -15,6 +15,7 @@
     "fast-copy": "^2.1.1",
     "firebase": "^8.2.6",
     "localforage": "^1.9.0",
+    "moment": "^2.29.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-firebase-hooks": "^2.2.0",

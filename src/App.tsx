@@ -6,6 +6,7 @@ import "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 import localforage from "localforage";
+import moment from "moment";
 import './App.css';
 
 import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
@@ -45,14 +46,17 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'flex',
       bottom: 0,
     },
-    appBar: {
+    controlarea: {
       top: 'auto',
       position: 'fixed',
       bottom: 0,
       paddingTop: theme.spacing(2),
       width: '100%'
     },
-    controls: {
+    appBar: {
+      paddingTop: theme.spacing(2)
+    },
+    flexGrow: {
       alignItems: 'center',
       flexGrow: 1 // 해당 영역과 함께 나란히 놓인 다른 태그들을 양끝으로 밀어낸다(?)
     },
@@ -65,7 +69,7 @@ const useStyles = makeStyles((theme: Theme) =>
       width: 32
     },
     progress: {
-      margin: '1em 1em 2em '
+      margin: '1em 1em 0em'
     },    
     paper: {
       padding: theme.spacing(2),
@@ -271,20 +275,34 @@ function MusicPlayer() {
     }
     setCurrentPlayIdx(nextIdx);
   }
+
+  function convertTimeString(ms : number) {
+    return moment(ms * 1000).format("mm:ss");
+  }
   
   return (
     <>
     <audio ref={audioRef} hidden={true} />
+    <Card>
+      
+    </Card>
     {isShowPlayList? 
     <MusicList close={setIsShowPlayList} playList={playList} currentPlayIdx={currentPlayIdx} setCurrentPlayIdx={setCurrentPlayIdx} /> : 
-    <div className={classes.appBar}>
-      <LinearProgress className={classes.progress} variant="determinate" value={currentTime / totalTime * 100 } />
-      <AppBar position={'relative'}>
+    <div className={classes.controlarea}>
+      <div>
+        <LinearProgress className={classes.progress} variant="determinate" value={currentTime / totalTime * 100 } />
+        <Toolbar>
+          <Typography variant={'body2'}>{convertTimeString(currentTime)}</Typography>
+            <div className={classes.flexGrow}></div>
+          <Typography variant={'body2'}>{convertTimeString(totalTime)}</Typography>
+        </Toolbar>
+      </div>
+      <AppBar position={'relative'} className={classes.appBar}>
         <Toolbar>
         <IconButton color={ isRepeat? 'inherit' : 'default' } aria-label="loop" onClick={() => setIsRepeat(!isRepeat)}>
           <IconRepeat />
         </IconButton>
-        <div className={classes.controls}>
+        <div className={classes.flexGrow}>
         <IconButton aria-label="previous" onClick={() => audioRef.current.currentTime = 0}>
           {theme.direction === 'rtl' ? 
           <IconSkipNext className={classes.Icon} /> : 
@@ -312,7 +330,7 @@ function MusicPlayer() {
         <IconButton edge='start' color="inherit" aria-label="menu" onClick={() => setIsShowPlayList(true)}>
           <IconPlaylistPlay />
         </IconButton>
-        <div className={classes.controls}></div>
+        <div className={classes.flexGrow}></div>
         <SignOut />
       </Toolbar>
       </AppBar>
