@@ -6,9 +6,6 @@ import "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 import localforage from "localforage";
-import deepCopy from "fast-copy";
-
-// import logo from './logo.svg';
 import './App.css';
 
 import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
@@ -28,7 +25,7 @@ import Repeat from "@material-ui/icons/Repeat";
 import Shuffle from "@material-ui/icons/Shuffle";
 
 import { firebaseConfig } from "./firebaseConfig";
-import { Media } from "./models/media";
+import { Media } from './models/media';
 
 firebase.initializeApp(firebaseConfig);
 
@@ -97,14 +94,35 @@ function SignOut() {
 }
 
 interface MusicListProp {
-  playList : Media[]
+  closeThis : Function,
+  playList : Media[],
+  currentPlayIdx : number,
+  setCurrentPlayIdx : Function
 }
 
 /**
  * 음악 리스트 화면
  */
-function MusicList({ playList } : MusicListProp) {
+function MusicList({ closeThis, playList, currentPlayIdx, setCurrentPlayIdx } : MusicListProp) {
 
+  function onCloseClick() {
+    closeThis();
+  }
+
+  return (<>
+  {playList && playList.map(item => {
+    
+    return (
+      <div>
+      {(item.idx === currentPlayIdx)? "(playing)" : "" }
+      <span>{ item.idx } </span>
+      <span>{ item.title } </span>
+      <button onClick={() => setCurrentPlayIdx(item.idx)} >jump Music</button>
+      </div>
+    )
+  }) }
+  <button onClick={onCloseClick}>Close List</button>
+  </>)
 }
 
 /**
@@ -119,28 +137,32 @@ function MusicPlayer() {
   const [isSuffle, setIsSuffle] = useState(false);
 
   const [currentPlayIdx, setCurrentPlayIdx] = useState(-1);
-  const [playIndexes, setPlayIndexes] = useState(new Array<number>());
-  const [playList, setPlayList] = useState(new Array<string>());
+  const [currentPlayTitle, setCurrentPlayTitle] = useState("");
+  // const [playIndexes, setPlayIndexes] = useState(new Array<number>());
+  const [playList, setPlayList] = useState(new Array<Media>());
   const [totalTime, setTotalTime] = useState(1); // 초기값을 0으로 주면 바로 다음 음악재생
   const [currentTime, setCurrentTime] = useState(0);
 
+  const [isShowPlayList, setIsShowPlayList] = useState(false);
+
   // const audio = new Audio(); // 이렇게 선언할 경우 MusicPlayer 내 다른 state값이 변경될때마다 매번 생성됨.
   // const [audio] = useState(new Audio()); // 재생중 로그아웃시 객체가 살아남아있다. 어차피 DevTools 네트워크탭에서 blob URL 확인이 가능하므로 그냥 useRef 쓰도록 하자.
-  const audioRef = useRef(new Audio);
+  const audioRef = useRef(new Audio());
 
   function init() {
     console.log(`init ${MusicPlayer.name}`);
     storage.listAll().then(result => {
-      const mediaArray : string[] = [];
-      const playIdx : number[] = [];
+      const mediaArray : Media[] = [];
       let i = 0;
       result.items.forEach(item => {
-        mediaArray.push(item.name);
-        playIdx.push(i);
+        mediaArray.push({
+          idx : i,
+          title : item.name,
+        });
         i++;
       });
       setPlayList(mediaArray);
-      setPlayIndexes(playIdx);
+      // setPlayIndexes(playIdx);
       setCurrentPlayIdx(0);
     });
     const audio = audioRef.current;
@@ -170,41 +192,30 @@ function MusicPlayer() {
   useEffect(() => {
     if(currentPlayIdx !== -1){
       const audio = audioRef.current;
-      URL.revokeObjectURL(audio.src);
-      const key = playList[playIndexes[currentPlayIdx]];
-      localforage.getItem(key)
-      .then(item => {
+      (async () => {
+        URL.revokeObjectURL(audio.src);
+        const music = playList[currentPlayIdx];
+        const item : any = await localforage.getItem(music.title);
         if(item) {
-          play(item); 
-        }
-        else {
-          return storage.child(key).getDownloadURL()
-          .then(url => {
-            if(url) {
-              return fetch(url);
-            }
-          })
-          .then(res => {
-            if(res) {
-              return res.blob();
-            }
-          })
-          .then(blob => {
-            if(blob) {
-              console.log(`call blob`);
-              console.log(blob);
-              localforage.setItem(key, blob);
-              play(blob);
-            }
-          });
-        }
-      });
-      const play = (item : any) => {
-         if(item){
           audio.src = URL.createObjectURL(item);
           if(isPlay) audio.play();
         }
-      }
+        else {
+          try {
+            const url = await storage.child(music.title).getDownloadURL();
+            const res = await fetch(url);
+            const blob = await res.blob();
+            localforage.setItem(music.title, blob);
+            audio.src = URL.createObjectURL(blob);
+            if(isPlay) audio.play();
+          }
+          catch(e)
+          {
+            console.error(e);
+          }
+        }
+        setCurrentPlayTitle(music.title);
+      })();
     }
   }, [currentPlayIdx])
 
@@ -216,17 +227,20 @@ function MusicPlayer() {
 
   useEffect(() => {
     if(isSuffle) {
-      setPlayIndexes(playIndexes.sort(() => Math.random() - Math.random()));
-      // 현재 듣는 음악을 인덱스 가장 앞쪽에 두려했지만, 굳이 안둬도 재생상에는 문제없으므로 쓰도록 한다. (똑같은 음악이 바로 다음순서가 될수도 있긴하다.)
+      // 현재 듣고 있는 index를 제외하고 Array 내 Index 번호들을 랜덤 순서로 변경
+      const p = playList;
+      const rndTargets = [...p.slice(0, currentPlayIdx), ...p.slice(currentPlayIdx + 1, p.length)].sort(p => Math.random() - Math.random());
+      const result = [...rndTargets.slice(0, currentPlayIdx), p[currentPlayIdx], ...rndTargets.slice(currentPlayIdx, p.length)];
+      setPlayList(result);
     }
     else {
-      setPlayIndexes(playIndexes.sort());
+      setPlayList(p => p.sort());
     }
   }, [isSuffle]);
 
   function setNextPlay() {
     let nextIdx = currentPlayIdx + 1;
-    if(nextIdx >= playIndexes.length){
+    if(nextIdx >= playList.length){
       nextIdx = 0;
       if(!isRepeat){
         const audio = audioRef.current;
@@ -236,17 +250,26 @@ function MusicPlayer() {
     }
     setCurrentPlayIdx(nextIdx);
   }
+
+  function closePlayList() {
+    setIsShowPlayList(false);
+  }
   
   return (
     <>
     <audio ref={audioRef} hidden={true} />
-    <Card className={classes.card}>
+    {isShowPlayList? 
+    <MusicList closeThis={closePlayList} playList={playList} currentPlayIdx={currentPlayIdx} setCurrentPlayIdx={setCurrentPlayIdx} /> : 
+      <>
+      <Card className={classes.card}>
         <CardHeader>
           <Typography>Test</Typography>
         </CardHeader>
         <CardContent>
+          <Typography>{currentPlayTitle}</Typography>
           <Typography>{currentPlayIdx}</Typography>
           <Typography>{currentTime} / {totalTime}</Typography>
+          
         </CardContent>
       </Card>
       <AppBar position={'fixed'} className={classes.appBar}>
@@ -279,12 +302,13 @@ function MusicPlayer() {
       </IconButton>
       </Toolbar>
       <Toolbar>
-        <IconButton edge='start' color="inherit" aria-label="menu">
+        <IconButton edge='start' color="inherit" aria-label="menu" onClick={() => setIsShowPlayList(true)}>
           <PlaylistPlay />
         </IconButton>
         <SignOut />
       </Toolbar>
       </AppBar>
+      </>}
     </>
   );
 }
