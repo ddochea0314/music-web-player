@@ -17,18 +17,54 @@ firebase 서비스를 이용하려면 firebase tool이 설치되어 있어야 �
 
 ## 2. firebaseConfig 생성
 
+프로젝트를 생성 후 몇 차례 단계를 거치면 Firebase Console 웹 화면이 표시됩니다. 상단 프로젝트 개요의 설정아이콘을 눌러 프로젝트 설정에 이동한 후, 아래 이미지 단계에 따라 작업을 수행하세요.
+
 ![app 플랫폼 생성1](/docs/img/appconfig1.png)
 
 ![app 플랫폼 생성2](/docs/img/appconfig2.png)
 
 ![app 플랫폼 생성3](/docs/img/appconfig3.png)
 
-이 단계까지 완료하시면 firebaseConfig 가 생성된 것을 볼 수 있습니다. 이상태에서 firebaseConfig 변수값을 복사하시거나, 콘솔로 이동 후 프로젝트 설정화면 하단에 생성된 웹 앱 플랫폼정보에서 복사하시면 됩니다.
+이 단계까지 완료하면 firebaseConfig 가 생성된 것을 볼 수 있습니다. 이상태에서 firebaseConfig 변수값을 복사하시거나, 콘솔로 이동 후 프로젝트 설정화면 하단에 생성된 웹 앱 플랫폼정보에서 복사하시면 됩니다.
 
 ![app 플랫폼 생성4](/docs/img/appconfig4.png)
 
 ## 3. 프로젝트 src 폴더 내 firebaseConfig.ts 파일 추가
 
+프로젝트 src 폴더 내 firebaseConfig.ts를 넣고 전 단계에서 생성한 firebaseConfig 변수를 export 할 수 있도록 모듈화시켜 코딩하세요.
+
+<pre><code>
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+export const firebaseConfig = {
+  apiKey: "{프로젝트 apiKey}",
+  authDomain: "{프로젝트 authDomain}",
+  projectId: "{프로젝트 projectId}",
+  storageBucket: "{프로젝트 storageBucket}",
+  messagingSenderId: "{프로젝트 messagingSenderId}",
+  appId: "{프로젝트 appId}",
+  measurementId: "{프로젝트 measurementId}"
+};
+
+</code></pre>
+
+## 4. .firebaserc 파일 생성
+프로젝트 root 경로에 .firebaserc 파일을 생성하세요.
+
+<pre><code>
+{
+  "projects": {
+    "default": "{프로젝트명}"
+  }
+}
+</code></pre>
+
+## 5. firebase Storage에 파일업로드
+Firebase Console 웹 화면에서 재생하고 싶은 음악 파일을 storage에 업로드 합니다. 사용하시는 브라우저의 audio 태그에서 지원할 수 있는 파일을 올리시기 바랍니다. 대게 mp3, mp4는 문제없이 동작할 것입니다.
+
+## 6. firebase Authentication 에서 로그인 제공업체 "Google" 선택
+Firebase Console 웹 화면의 Authentication 란에 사용할 로그인 제공업체를 선택합니다. 이 프로젝트는 Google을 기준으로 개발하였기 때문에 Google을 사용설정해야 합니다.
+
+![로그인 공급업체 설정](/docs/img/auth1.png)
 
 # QnA
 
