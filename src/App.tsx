@@ -8,9 +8,8 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import localforage from "localforage";
 import moment from "moment";
 import './App.css';
-
 import { createStyles, makeStyles, Theme, useTheme } from '@material-ui/core/styles';
-import { AppBar, LinearProgress, Fab, Card, CardContent, IconButton, Toolbar, Typography, CardHeader, Button, List, ListItem, ListItemText, ListItemIcon, Grid, Paper } from '@material-ui/core';
+import { AppBar, LinearProgress, Fab, Card, CardContent, CardMedia, IconButton, Toolbar, Typography, Button, List, ListItem, ListItemText, ListItemIcon, Box } from '@material-ui/core';
 
 // 이 방식은 빌드 및 테스트 초기 로딩이 느린 단점이 있음.
 // import { PlaylistPlay, PlayArrow, Pause, SkipNext, SkipPrevious } from "@material-ui/icons";
@@ -51,7 +50,8 @@ const useStyles = makeStyles((theme: Theme) =>
       position: 'fixed',
       bottom: 0,
       paddingTop: theme.spacing(2),
-      width: '100%'
+      width: '100%',
+      textAlign: 'center',
     },
     appBar: {
       paddingTop: theme.spacing(2)
@@ -60,9 +60,11 @@ const useStyles = makeStyles((theme: Theme) =>
       alignItems: 'center',
       flexGrow: 1 // 해당 영역과 함께 나란히 놓인 다른 태그들을 양끝으로 밀어낸다(?)
     },
-    card : {
-      margin: theme.spacing(1),
-      minHeight: 400
+    cardMedia : {
+      height: '50vmin'
+    },
+    cardContent : {
+      height: '20vmin'
     },
     Icon: {
       height: 32,
@@ -70,11 +72,6 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     progress: {
       margin: '1em 1em 0em'
-    },    
-    paper: {
-      padding: theme.spacing(2),
-      textAlign: 'center',
-      color: theme.palette.text.secondary,
     },
   }),
 );
@@ -199,12 +196,14 @@ function MusicPlayer() {
       // }
       //#endregion
       setCurrentTime(audio.currentTime);
-      setTotalTime(audio.duration);
+      setTotalTime(Number.isNaN(audio.duration)? 1 : audio.duration);
     });
+    
     audio.addEventListener('play', function() {
       // H/W에서 제어했을때도 State의 변경값 확인이 필요하므로 eventlistener 필요
       setIsPlay(true); // 이벤트리스너 안에선 고정값만 사용가능.
     });
+
     audio.addEventListener('pause', function() {
       setIsPlay(false);
     });
@@ -283,20 +282,30 @@ function MusicPlayer() {
   return (
     <>
     <audio ref={audioRef} hidden={true} />
-    <Card>
-      
-    </Card>
     {isShowPlayList? 
     <MusicList close={setIsShowPlayList} playList={playList} currentPlayIdx={currentPlayIdx} setCurrentPlayIdx={setCurrentPlayIdx} /> : 
+    <>
+    <Box width={1} position={'absolute'} top={0}>
+    <Card>
+      <CardMedia
+        className={classes.cardMedia}
+        image="logo512.png"
+        title="music cover"/>
+      <CardContent
+        className={classes.cardContent}>
+        <Typography variant={'body2'}>
+          {currentPlayTitle}
+        </Typography>
+      </CardContent>
+    </Card>
+    </Box>
     <div className={classes.controlarea}>
-      <div>
-        <LinearProgress className={classes.progress} variant="determinate" value={currentTime / totalTime * 100 } />
-        <Toolbar>
-          <Typography variant={'body2'}>{convertTimeString(currentTime)}</Typography>
-            <div className={classes.flexGrow}></div>
-          <Typography variant={'body2'}>{convertTimeString(totalTime)}</Typography>
-        </Toolbar>
-      </div>
+      <LinearProgress className={classes.progress} variant="determinate" value={currentTime / totalTime * 100 } />
+      <Toolbar>
+        <Typography variant={'body2'}>{convertTimeString(currentTime)}</Typography>
+          <div className={classes.flexGrow}></div>
+        <Typography variant={'body2'}>{convertTimeString(totalTime)}</Typography>
+      </Toolbar>
       <AppBar position={'relative'} className={classes.appBar}>
         <Toolbar>
         <IconButton color={ isRepeat? 'inherit' : 'default' } aria-label="loop" onClick={() => setIsRepeat(!isRepeat)}>
@@ -327,7 +336,7 @@ function MusicPlayer() {
       </IconButton>
       </Toolbar>
       <Toolbar>
-        <IconButton edge='start' color="inherit" aria-label="menu" onClick={() => setIsShowPlayList(true)}>
+        <IconButton color="inherit" aria-label="menu" onClick={() => setIsShowPlayList(true)}>
           <IconPlaylistPlay />
         </IconButton>
         <div className={classes.flexGrow}></div>
@@ -335,6 +344,7 @@ function MusicPlayer() {
       </Toolbar>
       </AppBar>
     </div>
+    </>
     }
     </>
   );
