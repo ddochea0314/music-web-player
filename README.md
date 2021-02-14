@@ -3,9 +3,10 @@
 2020년 11~12월 즈음 안드로이드에서 아이폰으로 갈아타고 평소 즐겨듣는 음악 파일을 재생할 수 없어 개발하게 된 웹앱 서비스입니다. 
 firebase의 Authentication, Storage, Hosting 3가지 서비스를 이용했습니다.
 
-해당 프로젝트에 대한 개발기도 작성했습니다. https://ddochea.tistory.com/category/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20%EA%B0%9C%EB%B0%9C/%EB%AE%A4%EC%A7%81%ED%94%8C%EB%A0%88%EC%9D%B4%EC%96%B4%20%EC%9B%B9%EC%95%B1
+해당 프로젝트에 대한 개발기도 작성했습니다. 아래 링크를 통해 접속 가능합니다.
 
-에서 확인 가능합니다.
+https://ddochea.tistory.com/category/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20%EA%B0%9C%EB%B0%9C/%EB%AE%A4%EC%A7%81%ED%94%8C%EB%A0%88%EC%9D%B4%EC%96%B4%20%EC%9B%B9%EC%95%B1
+
 
 # 1. 구현 컨셉
 Storage에 저장된 파일을 받아 indexed DB에 Blob 형식으로 저장시킨 뒤, 저장된 Blob 객체를 audio 태그에 적용시켜 음악을 재생하는 원리입니다. 브라우저의 인터넷 사용기록을 삭제하거나, 브라우저의 개발툴에서 직접 indexedDB를 지우지 않는 한 음악파일은 캐시에 유지되므로 초기 로딩 이후에는 트래픽을 사용하지 않습니다.
