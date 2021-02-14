@@ -64,7 +64,7 @@ Firebase Console 웹 화면에서 재생하고 싶은 음악 파일을 storage�
 ## 6. firebase Authentication 에서 로그인 제공업체 "Google" 선택
 Firebase Console 웹 화면의 Authentication 란에 사용할 로그인 제공업체를 선택합니다. 이 프로젝트는 Google을 기준으로 개발하였기 때문에 Google을 사용설정해야 합니다.
 
-![로그인 공급업체 설정](/docs/img/auth1.png)
+![로그인 공급업체 설정](/docs/img/setauth.png)
 
 # QnA
 
