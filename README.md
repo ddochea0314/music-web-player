@@ -23,7 +23,12 @@ firebase 서비스를 이용하려면 firebase tool이 설치되어 있어야 �
 
 ![app 플랫폼 생성3](/docs/img/appconfig3.png)
 
-이 단계까지 오시면 firebaseConfig 가 생성된 것을 볼 수 있습니다.
+이 단계까지 완료하시면 firebaseConfig 가 생성된 것을 볼 수 있습니다. 이상태에서 firebaseConfig 변수값을 복사하시거나, 콘솔로 이동 후 프로젝트 설정화면 하단에 생성된 웹 앱 플랫폼정보에서 복사하시면 됩니다.
+
+![app 플랫폼 생성4](/docs/img/appconfig4.png)
+
+## 3. 프로젝트 src 폴더 내 firebaseConfig.ts 파일 추가
+
 
 # QnA
 
