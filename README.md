@@ -8,7 +8,7 @@ firebase의 Authentication, Storage, Hosting 3가지 서비스를 이용했습�
 Storage에 저장된 파일을 받아 indexed DB에 Blob 형식으로 저장시킨 뒤, 저장된 Blob 객체를 audio 태그에 적용시켜 음악을 재생하는 원리입니다. 브라우저의 인터넷 사용기록을 삭제하거나, 브라우저의 개발툴에서 직접 indexedDB를 지우지 않는 한 음악파일은 캐시에 유지되므로 초기 로딩 이후에는 트래픽을 사용하지 않습니다.
 
 # 2. 실행 방법
-소스코드를 다운로드 받았다고 해서 바로 시연이 가능한 것은 아닙니다. firebase에서 프로젝트를 생성한 후 아래 스크린샷 순서대로 앱 플랫폼 Config정보를 생성해주세요.
+소스코드를 다운로드 받았다고 해서 바로 시연이 가능한 것은 아닙니다. npm i 로 필요한 패키지를 모두 설치 한 뒤, firebase 프로젝트를 생성한 후 아래 스크린샷 순서대로 앱 플랫폼 Config정보를 생성해주세요.
 
 ## 1. firebase tools 설치
 firebase 서비스를 이용하려면 firebase tool이 설치되어 있어야 합니다. 아래 명령어로 설치하세요.
@@ -61,13 +61,26 @@ export const firebaseConfig = {
 ## 5. firebase Storage에 파일업로드
 Firebase Console 웹 화면에서 재생하고 싶은 음악 파일을 storage에 업로드 합니다. 사용하시는 브라우저의 audio 태그에서 지원할 수 있는 파일을 올리시기 바랍니다. 대게 mp3, mp4는 문제없이 동작할 것입니다.
 
-## 6. firebase Authentication 에서 로그인 제공업체 "Google" 선택
+## 6. Storage CORS 설정
+
+Firebase Storage URL과 Hosting 할 웹 서비스 URL이 다르므로 Storage에 대한 CORS 설정이 필요합니다. 해당 설정은 아래 링크를 참조해주세요.
+https://firebase.google.com/docs/storage/web/download-files?authuser=0
+
+## 7. firebase Authentication 에서 로그인 제공업체 "Google" 선택
 Firebase Console 웹 화면의 Authentication 란에 사용할 로그인 제공업체를 선택합니다. 이 프로젝트는 Google을 기준으로 개발하였기 때문에 Google을 사용설정해야 합니다.
 
 ![로그인 공급업체 설정](/docs/img/setauth.png)
 
+## 8. 동작확인
+
+다 되었습니다! npm start 명령어로 실행해보세요.
+
 # QnA
 
 Q. 앱스토어에 클라우드 기반의 음악재생 앱이 있는데 왜 굳이 개발했나요?
+
 A. 믿음이 안가서요. 신뢰할 수 있는 기업이 만든게 아니라면 다운로드 받지 않습니다.
 
+Q. 재난문자가 오면 음악이 끊겨요.
+
+A. 네 알고 있습니다. 방법이 있는지 알아보고 있습니다 ㅠㅠ
