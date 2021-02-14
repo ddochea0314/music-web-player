@@ -239,6 +239,7 @@ function MusicPlayer() {
           }
         }
         setCurrentPlayTitle(music.title);
+        document.title = `${music.title} - Music Player`;
       })();
     }
   }, [currentPlayIdx])
