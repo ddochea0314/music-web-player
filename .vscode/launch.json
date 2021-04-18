@@ -19,6 +19,13 @@
             "url": "http://localhost:3000",
             "webRoot": "${workspaceFolder}",
             "userDataDir": false
+        },
+        {
+            "name": "Docker Node.js Launch",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: debug",
+            "platform": "node"
         }
     ]
 }

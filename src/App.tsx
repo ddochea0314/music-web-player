@@ -27,6 +27,7 @@ import IconVolumeMute from "@material-ui/icons/VolumeMute";
 import IconClose from "@material-ui/icons/Close";
 import IconExitToApp from '@material-ui/icons/ExitToApp';
 
+
 import { firebaseConfig } from "./firebaseConfig";
 import { Media } from './models/media';
 
